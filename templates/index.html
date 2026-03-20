@@ -15,121 +15,250 @@
     
     <style type="text/tailwindcss">
         @layer components {
-            .btn-primary { @apply bg-primary hover:bg-primaryDark text-white font-bold py-4 px-6 rounded-2xl shadow-[0_6px_0_#4f46e5] active:shadow-[0_0px_0_#4f46e5] active:translate-y-1.5 transition-all text-lg flex items-center justify-center gap-2 cursor-pointer w-full; }
-            .quest-card { @apply bg-surfaceLight dark:bg-surfaceDark border border-slate-200 dark:border-slate-700 p-6 rounded-[2rem] shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col relative overflow-hidden; }
-            .option-btn { @apply bg-surfaceLight dark:bg-surfaceDark border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold py-6 px-8 rounded-[2rem] text-xl text-left transition-all duration-150 relative flex items-center gap-6 cursor-pointer w-full shadow-sm; }
-            .option-btn:hover { @apply border-primary/50 dark:border-primary/50 shadow-md; transform: translateY(-2px); }
-            .option-btn:active { transform: translateY(2px); box-shadow: 0 0 0 transparent; }
-            .option-btn.correct { @apply border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.15)]; z-index: 10; }
-            .option-btn.wrong { @apply border-rose-500 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 opacity-60; transform: translateY(4px); }
-            .option-marker { @apply flex items-center justify-center w-10 h-10 rounded-xl border-2 border-slate-300 dark:border-slate-600 text-base flex-shrink-0 transition-colors duration-300 font-black; }
-            .option-btn:hover .option-marker { @apply border-primary/50 text-primary dark:text-primary; }
-            .option-btn.correct .option-marker { @apply border-emerald-500 bg-emerald-500 text-white; }
-            .option-btn.wrong .option-marker { @apply border-rose-500 bg-rose-500 text-white; }
-            .input-field { @apply w-full bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl px-6 py-4 text-lg font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-primary transition-colors; }
+            /* Botões principais com tamanhos padronizados */
+            .btn-primary { @apply bg-primary hover:bg-primaryDark text-white font-bold rounded-2xl shadow-[0_6px_0_#4f46e5] active:shadow-none active:translate-y-1.5 transition-all text-lg flex items-center justify-center gap-2 cursor-pointer; }
+            .btn-secondary { @apply bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-2xl shadow-[0_6px_0_#334155] active:shadow-none active:translate-y-1.5 transition-all text-lg flex items-center justify-center gap-2 cursor-pointer; }
+            
+            .quest-card { @apply bg-surfaceLight/90 dark:bg-surfaceDark/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700/50 p-6 rounded-[2rem] shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col relative overflow-hidden; }
+            .input-field { @apply w-full bg-slate-100 dark:bg-slate-800/80 border-2 border-slate-200 dark:border-slate-700 rounded-2xl px-6 py-4 text-lg font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-primary transition-colors; }
+            
+            /* --- O SEU CSS 3D DOS BOTÕES DE OPÇÃO --- */
+            .option-btn {
+                @apply bg-surfaceLight dark:bg-surfaceDark border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold py-8 px-8 rounded-[2rem] text-xl text-left transition-all duration-150 relative flex items-center gap-6 cursor-pointer;
+                box-shadow: 0 8px 0 var(--shadow-color, #cbd5e1);
+            }
+            .dark .option-btn {
+                --shadow-color: #0f172a;
+            }
+            .option-btn:hover {
+                @apply border-primary/50 dark:border-primary/50;
+                transform: translateY(-2px);
+                box-shadow: 0 10px 0 var(--shadow-color, #cbd5e1);
+            }
+            .option-btn:active {
+                transform: translateY(8px);
+                box-shadow: 0 0 0 transparent;
+            }
+            .option-btn.correct {
+                @apply border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400;
+                transform: translateY(8px);
+                box-shadow: 0 0 0 transparent;
+                z-index: 10;
+            }
+            .option-btn.wrong {
+                @apply border-rose-500 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 opacity-90;
+                transform: translateY(8px);
+                box-shadow: 0 0 0 transparent;
+            }
+            .option-marker {
+                @apply flex items-center justify-center w-10 h-10 rounded-xl border-2 border-slate-300 dark:border-slate-600 text-base flex-shrink-0 transition-colors duration-300 font-black;
+            }
+            .option-btn:hover .option-marker {
+                @apply border-primary/50 text-primary dark:text-primary;
+            }
+            .option-btn.correct .option-marker {
+                @apply border-emerald-500 bg-emerald-500 text-white;
+            }
+            .option-btn.wrong .option-marker {
+                @apply border-rose-500 bg-rose-500 text-white;
+            }
         }
-        body { transition: background-color 0.5s ease, color 0.5s ease; }
+        
         @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        body, .bg-surfaceLight, .bg-surfaceDark { transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease; }
+        body { background-image: radial-gradient(ellipse at top right, var(--tw-gradient-stops)); }
     </style>
 </head>
-<body class="bg-bgLight text-textLight dark:bg-bgDark dark:text-textDark font-sans h-screen flex flex-col overflow-hidden selection:bg-primary selection:text-white">
+<body class="from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 text-textLight dark:text-textDark font-sans h-screen flex flex-col overflow-hidden selection:bg-primary selection:text-white">
 
-    <div class="absolute top-6 right-6 z-50">
-        <button id="theme-toggle" class="p-3 bg-surfaceLight dark:bg-surfaceDark rounded-full shadow-lg hover:scale-110 transition-transform duration-300 border border-slate-200 dark:border-slate-700">
-            <span id="theme-icon-dark" class="hidden text-xl">🌙</span>
-            <span id="theme-icon-light" class="text-xl text-yellow-500">☀️</span>
+    <div class="fixed bottom-6 right-6 md:top-6 md:bottom-auto z-50">
+        <button id="theme-toggle" class="p-4 md:p-3 bg-surfaceLight/90 dark:bg-surfaceDark/90 backdrop-blur-md rounded-full shadow-xl hover:scale-110 transition-transform duration-300 border border-slate-200 dark:border-slate-700">
+            <span id="theme-icon-dark" class="hidden text-2xl md:text-xl">🌙</span>
+            <span id="theme-icon-light" class="text-2xl md:text-xl text-yellow-500">☀️</span>
         </button>
     </div>
 
-    <div id="auth-screen" class="absolute inset-0 flex flex-col items-center justify-center z-40 bg-bgLight dark:bg-bgDark transition-opacity duration-500">
-        <div class="w-full max-w-md p-10 bg-surfaceLight dark:bg-surfaceDark rounded-[2rem] shadow-xl border border-slate-100 dark:border-slate-800">
-            <h1 class="text-5xl font-black text-primary tracking-tight text-center mb-8">SkillQuest</h1>
+    <div id="auth-screen" class="absolute inset-0 flex flex-col items-center justify-center z-40 transition-opacity duration-500 px-4">
+        <div class="w-full max-w-md p-8 md:p-10 bg-surfaceLight/95 dark:bg-surfaceDark/95 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-slate-200/60 dark:border-slate-700/60 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-purple-500"></div>
+            
+            <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500 tracking-tight text-center mb-10">SkillQuest</h1>
+            
             <div id="auth-error" class="hidden bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 font-bold p-4 rounded-xl mb-6 text-center"></div>
             
-            <form id="auth-form" class="space-y-6">
-                <input type="text" id="auth-username" class="input-field" placeholder="Nome de Usuário" required autocomplete="off">
-                <input type="password" id="auth-password" class="input-field" placeholder="Senha" required>
-                <button type="submit" id="auth-submit-btn" class="btn-primary">Entrar</button>
+            <form id="auth-form" class="space-y-5 w-full">
+                <div class="relative w-full">
+                    <span class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 text-lg">👤</span>
+                    <input type="text" id="auth-username" class="input-field pl-12 shadow-sm w-full" placeholder="Nome de Usuário" required autocomplete="off">
+                </div>
+                <div class="relative w-full">
+                    <span class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 text-lg">🔑</span>
+                    <input type="password" id="auth-password" class="input-field pl-12 shadow-sm w-full" placeholder="Senha" required>
+                </div>
+                
+                <button type="submit" id="auth-submit-btn" class="w-full bg-gradient-to-r from-primary to-purple-500 hover:from-primaryDark hover:to-purple-600 text-white font-black py-4 px-6 rounded-2xl shadow-[0_6px_0_#4c1d95] active:shadow-none active:translate-y-1.5 transition-all text-xl mt-4 flex justify-center items-center">
+                    Entrar
+                </button>
             </form>
             
             <div class="mt-8 text-center text-slate-500 font-bold">
                 <span id="auth-toggle-text">Novo por aqui?</span> 
-                <button id="auth-toggle-btn" class="text-primary hover:underline ml-1">Criar Conta</button>
+                <button id="auth-toggle-btn" class="text-primary hover:text-purple-500 transition-colors ml-1">Criar Conta</button>
             </div>
         </div>
     </div>
 
-    <div id="dashboard-screen" class="hidden flex-col h-full w-full max-w-6xl mx-auto p-6 md:p-10 relative overflow-y-auto">
-        <header class="flex flex-col md:flex-row items-center justify-between mb-8 gap-6 w-full">
-            <h1 class="text-4xl md:text-5xl font-black text-primary tracking-tight">SkillQuest</h1>
-            <div class="flex items-center gap-6 bg-surfaceLight dark:bg-surfaceDark py-3 px-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
-                <div class="flex items-center gap-3 pr-6 border-r-2 border-slate-200 dark:border-slate-700">
+    <div id="dashboard-screen" class="hidden flex-col h-full w-full max-w-6xl mx-auto p-4 md:p-10 relative overflow-y-auto">
+        <header class="flex flex-col md:flex-row items-center justify-between mb-8 gap-4 w-full mt-4 md:mt-0">
+            <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500 tracking-tight">SkillQuest</h1>
+            <div class="flex flex-wrap justify-center items-center gap-4 bg-surfaceLight/80 dark:bg-surfaceDark/80 backdrop-blur-md py-3 px-6 rounded-3xl shadow-sm border border-slate-200/50 dark:border-slate-700/50">
+                <div class="flex items-center gap-2 pr-4 md:pr-6 border-r-2 border-slate-200 dark:border-slate-700">
                     <span class="text-xl">👤</span>
                     <span id="profile-username" class="font-black text-slate-700 dark:text-slate-200 text-lg">Jogador</span>
-                    <button id="btn-logout" class="text-xs font-bold text-rose-500 hover:text-rose-600 ml-2">(Sair)</button>
+                    <button id="btn-edit-profile" class="text-slate-400 hover:text-primary transition-colors ml-1" title="Editar Perfil">✏️</button>
+                    <button id="btn-logout" class="text-xs font-bold text-rose-500 hover:text-rose-600 ml-1 md:ml-2 transition-colors">(Sair)</button>
                 </div>
                 <div class="flex items-center gap-2 text-primary font-bold text-xl">
-                    <span>⭐</span> <span id="dash-xp">0</span> XP
+                    <span>⭐</span> <span id="dash-xp">0</span>
                 </div>
-                <div class="flex items-center gap-2 text-indigo-400 font-bold text-xl border-l-2 border-slate-200 dark:border-slate-700 pl-6">
+                <div class="flex items-center gap-2 text-indigo-400 font-bold text-xl border-l-2 border-slate-200 dark:border-slate-700 pl-4 md:pl-6">
                     <span>Lvl</span> <span id="dash-level">1</span>
                 </div>
             </div>
         </header>
 
-        <main class="flex-1 w-full">
-            <div class="flex gap-8 mb-8 border-b-2 border-slate-200 dark:border-slate-800">
-                <button id="tab-quests" class="text-2xl font-extrabold text-primary border-b-4 border-primary pb-4 px-2 transition-all">Minhas Matérias</button>
-                <button id="tab-ranking" class="text-2xl font-extrabold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 border-b-4 border-transparent pb-4 px-2 transition-all">Ranking Global</button>
+        <main class="flex-1 w-full pb-20 md:pb-0">
+            <div class="flex gap-4 md:gap-8 mb-8 border-b-2 border-slate-200 dark:border-slate-800 overflow-x-auto">
+                <button id="tab-quests" class="text-xl md:text-2xl font-extrabold text-primary border-b-4 border-primary pb-4 px-2 transition-all whitespace-nowrap">Minhas Matérias</button>
+                <button id="tab-ranking" class="text-xl md:text-2xl font-extrabold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 border-b-4 border-transparent pb-4 px-2 transition-all whitespace-nowrap">Ranking Global</button>
             </div>
 
             <div id="quests-section" class="block w-full">
-                <div class="flex justify-between items-center mb-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 bg-surfaceLight/50 dark:bg-surfaceDark/50 p-4 rounded-3xl border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm">
                     <h2 class="text-2xl font-bold text-slate-500 dark:text-slate-400">Continue seu treinamento</h2>
-                    <input type="file" id="json-upload" accept=".json" class="hidden">
-                    <button onclick="document.getElementById('json-upload').click()" class="btn-primary w-auto py-3 px-5 text-base shadow-sm">
-                        <span>➕ Nova Quest</span>
-                    </button>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full sm:w-auto">
+                        <button id="btn-open-ai-modal" class="btn-secondary w-full py-3.5 px-6 text-base whitespace-nowrap flex items-center justify-center gap-2">
+                            <span class="text-cyan-400 text-xl">⚡</span> Criar com IA
+                        </button>
+                        
+                        <input type="file" id="json-upload" accept=".json" class="hidden">
+                        <button onclick="document.getElementById('json-upload').click()" class="btn-primary w-full py-3.5 px-6 text-base whitespace-nowrap flex items-center justify-center gap-2">
+                            <span>➕</span> Upload JSON
+                        </button>
+                    </div>
                 </div>
+                
                 <p id="upload-error" class="text-rose-500 font-semibold text-sm hidden bg-rose-50 dark:bg-rose-900/20 p-3 rounded-xl mb-6"></p>
                 <div id="modules-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-10"></div>
             </div>
 
             <div id="ranking-section" class="hidden w-full flex-col">
-                <div class="bg-surfaceLight dark:bg-surfaceDark rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                    <div class="grid grid-cols-12 gap-4 p-6 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 font-black text-slate-500 text-sm uppercase tracking-wider">
-                        <div class="col-span-2 text-center">Posição</div>
-                        <div class="col-span-5">Jogador</div>
-                        <div class="col-span-3 text-center">Liga</div>
-                        <div class="col-span-2 text-right">XP Total</div>
+                <div class="bg-surfaceLight/80 dark:bg-surfaceDark/80 backdrop-blur-md rounded-[2rem] border border-slate-200/50 dark:border-slate-800/50 shadow-xl overflow-hidden">
+                    <div class="grid grid-cols-12 gap-2 md:gap-4 p-4 md:p-6 bg-slate-100/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 font-black text-slate-500 text-xs md:text-sm uppercase tracking-wider">
+                        <div class="col-span-2 text-center">#</div>
+                        <div class="col-span-6 md:col-span-5">Jogador</div>
+                        <div class="col-span-4 md:col-span-3 text-center">Liga</div>
+                        <div class="hidden md:block md:col-span-2 text-right">XP Total</div>
                     </div>
-                    <div id="leaderboard-list" class="flex flex-col divide-y divide-slate-100 dark:divide-slate-800"></div>
+                    <div id="leaderboard-list" class="flex flex-col divide-y divide-slate-100 dark:divide-slate-800/50"></div>
                 </div>
             </div>
         </main>
     </div>
 
-    <div id="game-screen" class="hidden flex-col h-full max-w-5xl mx-auto w-full p-6 relative">
-        <header class="flex items-center justify-between mt-4 mb-6 gap-6 bg-surfaceLight dark:bg-surfaceDark p-4 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 w-full relative">
-            <button id="btn-back-dash" class="absolute -left-4 -top-4 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-white w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all z-10" title="Voltar ao Lobby">❌</button>
-            <div class="flex-1 bg-slate-200 dark:bg-slate-700 h-5 rounded-full overflow-hidden relative ml-6">
+    <div id="ai-modal" class="hidden absolute inset-0 flex-col items-center justify-center z-50 bg-slate-900/60 backdrop-blur-sm px-4 overflow-y-auto py-10">
+        <div class="w-full max-w-2xl bg-surfaceLight/95 dark:bg-surfaceDark/95 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-cyan-500/30 relative flex flex-col my-auto">
+            <div class="p-8 border-b border-slate-200 dark:border-slate-700/50 relative">
+                <button id="close-ai-modal" class="absolute top-6 right-6 text-slate-400 hover:text-rose-500 transition-colors text-2xl">❌</button>
+                <h2 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-primary flex items-center gap-2">
+                    <span>⚡</span> IA Forge
+                </h2>
+                <p class="text-slate-500 dark:text-slate-400 mt-2 font-bold">Crie módulos inteiros em segundos usando o ChatGPT.</p>
+            </div>
+            
+            <div class="p-8 space-y-8 flex-1 overflow-y-auto">
+                <div class="bg-cyan-50 dark:bg-cyan-900/10 p-5 rounded-2xl border border-cyan-200 dark:border-cyan-800/50">
+                    <h3 class="font-bold text-cyan-700 dark:text-cyan-400 mb-2 flex justify-between items-end">
+                        1. Copie este Prompt Universal
+                        <button id="btn-copy-prompt" class="bg-cyan-500 text-white text-xs px-3 py-1 rounded-lg hover:bg-cyan-600 transition-colors shadow-sm active:translate-y-1">Copiar</button>
+                    </h3>
+                    <textarea id="ai-prompt-template" class="w-full bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 text-sm p-4 rounded-xl border border-cyan-100 dark:border-slate-700 resize-none h-32 focus:outline-none font-mono" readonly>Atue como um professor especialista. Crie 10 perguntas de múltipla escolha sobre o tema [INSERIR TEMA AQUI].
+As perguntas devem ter uma progressão: 4 fáceis, 3 médias e 3 difíceis.
+Forneça a saída EXATAMENTE neste formato JSON, sem texto antes ou depois:
+[
+  {
+    "pergunta": "Texto da pergunta",
+    "opcoes": ["Opção A", "Opção B", "Opção C", "Opção D"],
+    "resposta_correta": 0,
+    "dificuldade": "facil"
+  }
+]
+Obs: "resposta_correta" é o índice (0 a 3) e "dificuldade" deve ser "facil", "media" ou "dificil".</textarea>
+                    <p class="text-xs text-slate-500 mt-2 font-bold">👉 Cole isso no ChatGPT, escolha o tema, e copie a resposta que ele te der.</p>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-slate-700 dark:text-slate-300 mb-2">2. Cole a resposta do ChatGPT aqui:</h3>
+                    <textarea id="ai-paste-area" class="input-field h-40 font-mono text-sm shadow-inner" placeholder='[{\n  "pergunta": "...",\n  "opcoes": [...],\n...}]'></textarea>
+                </div>
+                
+                <div id="ai-error" class="hidden bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 font-bold p-3 rounded-xl text-center text-sm"></div>
+            </div>
+            
+            <div class="p-8 border-t border-slate-200 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/20 rounded-b-[2rem]">
+                <button id="btn-import-ai" class="btn-primary w-full py-4 bg-gradient-to-r from-cyan-500 to-primary hover:from-cyan-600 hover:to-primaryDark shadow-[0_6px_0_#3730a3] active:shadow-none transition-all">
+                    Criar Matéria Mágica ✨
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="profile-modal" class="hidden absolute inset-0 flex-col items-center justify-center z-50 bg-slate-900/50 backdrop-blur-sm px-4">
+        <div class="w-full max-w-sm p-8 bg-surfaceLight/95 dark:bg-surfaceDark/95 backdrop-blur-lg rounded-[2rem] shadow-2xl border border-slate-200/50 dark:border-slate-700/50 relative">
+            <button id="close-profile-modal" class="absolute top-5 right-5 text-slate-400 hover:text-rose-500 transition-colors text-xl">❌</button>
+            <h2 class="text-3xl font-black text-primary mb-6 text-center">Editar Perfil</h2>
+            
+            <div id="profile-error" class="hidden bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 font-bold p-3 rounded-xl mb-4 text-center text-sm"></div>
+            <div id="profile-success" class="hidden bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 font-bold p-3 rounded-xl mb-4 text-center text-sm"></div>
+            
+            <form id="profile-form" class="space-y-4 w-full">
+                <div>
+                    <label class="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">Nome de Usuário</label>
+                    <input type="text" id="edit-username" class="input-field shadow-inner text-base py-3 w-full" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">Nova Senha</label>
+                    <input type="password" id="edit-password" class="input-field shadow-inner text-base py-3 w-full" placeholder="(Em branco para não mudar)">
+                </div>
+                <button type="submit" id="profile-submit-btn" class="btn-primary w-full mt-4">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="game-screen" class="hidden flex-col h-full max-w-5xl mx-auto w-full p-4 md:p-6 relative">
+        <header class="flex items-center justify-between mt-2 mb-6 gap-3 md:gap-6 bg-surfaceLight/80 dark:bg-surfaceDark/80 backdrop-blur-md p-3 md:p-4 rounded-3xl shadow-sm border border-slate-200/50 dark:border-slate-700/50 w-full z-10">
+            <button id="btn-back-dash" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-white w-10 h-10 md:w-12 md:h-12 rounded-full flex shrink-0 items-center justify-center shadow-sm transition-all">❌</button>
+            <div class="flex-1 bg-slate-200 dark:bg-slate-700 h-4 md:h-5 rounded-full overflow-hidden relative min-w-[100px] ml-2 md:ml-6">
                 <div id="progress-bar" class="bg-primary h-full w-0 transition-all duration-700 ease-out relative"><div class="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite]"></div></div>
             </div>
-            <div class="flex items-center gap-6 px-4">
-                <div class="flex items-center gap-2 text-orange-500 font-bold text-xl"><span>🔥</span> <span id="streak-display">0</span></div>
+            <div class="flex items-center gap-2 md:gap-6 px-2 md:px-4 shrink-0">
+                <div id="difficulty-badge" class="hidden md:flex items-center px-3 py-1 rounded-full text-xs font-bold text-white uppercase tracking-wider"></div>
+                <div id="fire-icon-container" class="flex items-center gap-1 md:gap-2 text-orange-500 font-bold text-lg md:text-xl transition-transform">
+                    <span>🔥</span> <span id="streak-display">0</span>
+                </div>
             </div>
         </header>
-        <main class="flex-1 flex flex-col justify-center items-center w-full max-w-4xl mx-auto py-2">
-            <h2 id="question-text" class="w-full text-3xl md:text-5xl font-extrabold text-center mb-16 text-slate-800 dark:text-slate-100 leading-tight md:leading-snug tracking-tight px-4"></h2>
-            <div id="options-container" class="w-full grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 px-4"></div>
+        <main class="flex-1 flex flex-col justify-center items-center w-full max-w-4xl mx-auto py-2 pb-24 md:pb-2">
+            <h2 id="question-text" class="w-full text-2xl md:text-4xl lg:text-5xl font-extrabold text-center mb-10 md:mb-16 text-slate-800 dark:text-slate-100 leading-tight md:leading-snug tracking-tight px-2"></h2>
+            <div id="options-container" class="w-full grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 px-2"></div>
         </main>
     </div>
 
-    <div id="end-screen" class="hidden absolute inset-0 flex flex-col items-center justify-center z-50 bg-bgLight dark:bg-bgDark">
-        <div class="bg-surfaceLight dark:bg-surfaceDark p-12 rounded-[3rem] text-center shadow-2xl border border-slate-100 dark:border-slate-800">
-            <h1 class="text-5xl font-black text-primary mb-6">Quest Concluída! 🎉</h1>
-            <p class="text-xl text-slate-500 dark:text-slate-400 mb-10">Você dominou essa matéria.</p>
-            <button id="btn-return-lobby" class="btn-primary py-5 px-10 w-full">Voltar ao Lobby</button>
+    <div id="end-screen" class="hidden absolute inset-0 flex flex-col items-center justify-center z-50 px-4">
+        <div class="bg-surfaceLight/90 dark:bg-surfaceDark/90 backdrop-blur-xl p-8 md:p-12 rounded-[3rem] text-center shadow-2xl border border-slate-200/50 dark:border-slate-800/50 w-full max-w-lg">
+            <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500 mb-6">Quest Concluída! 🎉</h1>
+            <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 mb-10">Você dominou essa matéria e garantiu seu XP.</p>
+            <button id="btn-return-lobby" class="btn-primary w-full py-4 text-xl shadow-lg">Voltar ao Lobby</button>
         </div>
     </div>
 

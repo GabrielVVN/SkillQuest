@@ -33,7 +33,7 @@ init_db()
 def index():
     return render_template('index.html')
 
-# --- ROTAS DE AUTENTICAÇÃO ---
+# --- ROTAS DE AUTENTICAÇÃO E PERFIL ---
 
 @app.route('/api/register', methods=['POST'])
 def register():
@@ -75,6 +75,34 @@ def logout():
     session.clear()
     return jsonify({'success': True})
 
+@app.route('/api/edit_profile', methods=['POST'])
+def edit_profile():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Não autenticado'}), 401
+    
+    data = request.json
+    new_username = data.get('username')
+    new_password = data.get('password')
+    
+    if not new_username:
+        return jsonify({'error': 'O nome de usuário não pode ficar vazio.'}), 400
+        
+    try:
+        with get_db() as conn:
+            if new_password: # Atualiza nome e senha
+                hashed_password = generate_password_hash(new_password)
+                conn.execute('UPDATE users SET username = ?, password = ? WHERE id = ?', 
+                             (new_username, hashed_password, session['user_id']))
+            else: # Atualiza apenas o nome
+                conn.execute('UPDATE users SET username = ? WHERE id = ?', 
+                             (new_username, session['user_id']))
+            conn.commit()
+            
+        session['username'] = new_username
+        return jsonify({'success': True, 'username': new_username})
+    except sqlite3.IntegrityError:
+        return jsonify({'error': 'Este nome de usuário já está em uso.'}), 400
+
 # --- ROTAS DE DADOS DO JOGO ---
 
 @app.route('/api/userdata', methods=['GET'])
@@ -112,35 +140,24 @@ def sync_data():
         
     return jsonify({'success': True})
 
-# --- ROTA DE RANKING GLOBAL (LEADERBOARD) ---
 @app.route('/api/leaderboard', methods=['GET'])
 def get_leaderboard():
     try:
         with get_db() as conn:
-            # Pega os top 50 usuários com mais XP
             users = conn.execute('SELECT username, xp, level FROM users ORDER BY xp DESC LIMIT 50').fetchall()
             
         leaderboard = []
         for index, user in enumerate(users):
             level = user['level']
             
-            # Matemática do Sistema de Ligas
             if level < 5:
-                league = 'Bronze'
-                icon = '🥉'
-                color = 'text-amber-600 dark:text-amber-500'
+                league, icon, color = 'Bronze', '🥉', 'text-amber-600 dark:text-amber-500'
             elif level < 15:
-                league = 'Prata'
-                icon = '🥈'
-                color = 'text-slate-400 dark:text-slate-300'
+                league, icon, color = 'Prata', '🥈', 'text-slate-400 dark:text-slate-300'
             elif level < 30:
-                league = 'Ouro'
-                icon = '🥇'
-                color = 'text-yellow-500'
+                league, icon, color = 'Ouro', '🥇', 'text-yellow-500'
             else:
-                league = 'Diamante'
-                icon = '💎'
-                color = 'text-cyan-400'
+                league, icon, color = 'Diamante', '💎', 'text-cyan-400'
                 
             leaderboard.append({
                 'rank': index + 1,
