@@ -1,0 +1,87 @@
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Transição global suave para o tema */
+body, .bg-surfaceLight, .bg-surfaceDark {
+    transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease;
+}
+
+/* --- ESTILO 3D DOS BOTÕES DE OPÇÃO --- */
+
+.option-btn {
+    /* Padding maior (py-8 px-8), texto maior (text-xl), bordas mais arredondadas */
+    @apply bg-surfaceLight dark:bg-surfaceDark border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold py-8 px-8 rounded-[2rem] text-xl text-left transition-all duration-150 relative flex items-center gap-6 cursor-pointer;
+    
+    /* A sombra que cria o efeito 3D (a cor muda no dark mode) */
+    box-shadow: 0 8px 0 var(--shadow-color, #cbd5e1); /* slate-300 */
+}
+
+/* Cor da sombra no Dark Mode */
+.dark .option-btn {
+    --shadow-color: #0f172a; /* bgDark / slate-900 */
+}
+
+/* Hover: Botão levanta levemente e a sombra aumenta */
+.option-btn:hover {
+    @apply border-primary/50 dark:border-primary/50;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 0 var(--shadow-color, #cbd5e1);
+}
+
+/* Active (O Clique): O botão afunda e a sombra desaparece */
+.option-btn:active {
+    transform: translateY(8px);
+    box-shadow: 0 0 0 transparent;
+}
+
+/* --- ESTADOS DE ACERTO E ERRO --- */
+
+/* Quando acerta, o botão fica afundado e muda de cor */
+.option-btn.correct {
+    @apply border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400;
+    transform: translateY(8px);
+    box-shadow: 0 0 0 transparent;
+    z-index: 10;
+}
+
+/* Quando erra, o botão também afunda */
+.option-btn.wrong {
+    @apply border-rose-500 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 opacity-90;
+    transform: translateY(8px);
+    box-shadow: 0 0 0 transparent;
+}
+
+/* Marcador numérico da opção (1, 2, 3, 4) - Um pouco maior agora */
+.option-marker {
+    @apply flex items-center justify-center w-10 h-10 rounded-xl border-2 border-slate-300 dark:border-slate-600 text-base flex-shrink-0 transition-colors duration-300;
+}
+
+.option-btn:hover .option-marker {
+    @apply border-primary/50 text-primary dark:text-primary;
+}
+
+.option-btn.correct .option-marker {
+    @apply border-emerald-500 bg-emerald-500 text-white;
+}
+
+.option-btn.wrong .option-marker {
+    @apply border-rose-500 bg-rose-500 text-white;
+}
+
+.option-marker {
+    @apply flex items-center justify-center w-8 h-8 rounded-xl border-2 border-slate-300 dark:border-slate-600 text-sm flex-shrink-0 transition-colors duration-300;
+}
+
+.option-btn:hover .option-marker {
+    @apply border-primary/50 text-primary dark:text-primary;
+}
+
+.option-btn.correct .option-marker {
+    @apply border-emerald-500 bg-emerald-500 text-white;
+}
+
+.option-btn.wrong .option-marker {
+    @apply border-rose-500 bg-rose-500 text-white;
+}
