@@ -26,24 +26,23 @@ const gameScreen = document.getElementById('game-screen');
 const endScreen = document.getElementById('end-screen');
 const modulesGrid = document.getElementById('modules-grid');
 
-// --- LÓGICA DAS ABAS ---
+// --- LÓGICA DAS ABAS (ALTERADA PARA ESTATÍSTICAS) ---
 const tabQuests = document.getElementById('tab-quests');
-const tabRanking = document.getElementById('tab-ranking');
+const tabStats = document.getElementById('tab-stats');
 const questsSection = document.getElementById('quests-section');
-const rankingSection = document.getElementById('ranking-section');
-const leaderboardList = document.getElementById('leaderboard-list');
+const statsSection = document.getElementById('stats-section');
 
-tabRanking.addEventListener('click', () => {
-    tabRanking.classList.add('text-primary', 'border-primary'); tabRanking.classList.remove('text-slate-400', 'border-transparent');
+tabStats.addEventListener('click', () => {
+    tabStats.classList.add('text-primary', 'border-primary'); tabStats.classList.remove('text-slate-400', 'border-transparent');
     tabQuests.classList.remove('text-primary', 'border-primary'); tabQuests.classList.add('text-slate-400', 'border-transparent');
-    questsSection.classList.replace('block', 'hidden'); rankingSection.classList.replace('hidden', 'flex');
-    loadLeaderboard();
+    questsSection.classList.replace('block', 'hidden'); statsSection.classList.replace('hidden', 'flex');
+    loadStats(); // Carrega as métricas locais
 });
 
 tabQuests.addEventListener('click', () => {
     tabQuests.classList.add('text-primary', 'border-primary'); tabQuests.classList.remove('text-slate-400', 'border-transparent');
-    tabRanking.classList.remove('text-primary', 'border-primary'); tabRanking.classList.add('text-slate-400', 'border-transparent');
-    rankingSection.classList.replace('flex', 'hidden'); questsSection.classList.replace('hidden', 'block');
+    tabStats.classList.remove('text-primary', 'border-primary'); tabStats.classList.add('text-slate-400', 'border-transparent');
+    statsSection.classList.replace('flex', 'hidden'); questsSection.classList.replace('hidden', 'block');
 });
 
 checkAuthSession();
@@ -166,7 +165,7 @@ async function syncData() {
     catch (err) { console.error("Erro ao sincronizar com servidor", err); }
 }
 
-// --- FUNÇÃO DE ORDENAÇÃO DE DIFICULDADE (NOVO) ---
+// --- FUNÇÃO DE ORDENAÇÃO DE DIFICULDADE ---
 function sortQuestionsByDifficulty(questionsArray) {
     const difficultyWeights = { 'facil': 1, 'media': 2, 'dificil': 3 };
     return questionsArray.sort((a, b) => {
@@ -194,11 +193,18 @@ fileInput.addEventListener('change', async (e) => {
         const result = await response.json();
         if (result.success) {
             errorMsg.classList.add('hidden');
-            
-            // Ordena as questões antes de salvar!
             const sortedQuestions = sortQuestionsByDifficulty(result.data);
             
-            modules.push({ id: Date.now().toString(), name: finalName, questions: sortedQuestions, progressIndex: 0 });
+            // Adiciona propriedades para rastrear o histórico
+            modules.push({ 
+                id: Date.now().toString(), 
+                name: finalName, 
+                questions: sortedQuestions, 
+                progressIndex: 0,
+                timesCompleted: 0,
+                totalCorrect: 0,
+                totalAnswered: 0
+            });
             syncData(); renderDashboard();
             confetti({ particleCount: 100, spread: 80, origin: { y: 0.8 }, zIndex: 9999 });
         } else { showModuleError(result.error); }
@@ -206,7 +212,7 @@ fileInput.addEventListener('change', async (e) => {
     fileInput.value = ''; 
 });
 
-// --- GERADOR IA (NOVO) ---
+// --- GERADOR IA ---
 const aiModal = document.getElementById('ai-modal');
 const btnOpenAiModal = document.getElementById('btn-open-ai-modal');
 const closeAiModal = document.getElementById('close-ai-modal');
@@ -227,7 +233,6 @@ closeAiModal.addEventListener('click', () => {
     }});
 });
 
-// Botão de Copiar o Prompt
 btnCopyPrompt.addEventListener('click', () => {
     const promptText = document.getElementById('ai-prompt-template').value;
     navigator.clipboard.writeText(promptText).then(() => {
@@ -241,7 +246,6 @@ btnCopyPrompt.addEventListener('click', () => {
     });
 });
 
-// Lógica pesada: O conversor e limpador do texto do ChatGPT
 btnImportAi.addEventListener('click', () => {
     const rawText = aiPasteArea.value;
     aiError.classList.add('hidden');
@@ -251,28 +255,16 @@ btnImportAi.addEventListener('click', () => {
     }
 
     try {
-        // Limpeza inteligente: O ChatGPT as vezes coloca ```json ... ``` no inicio e fim. Essa regex remove isso.
         let cleanText = rawText.replace(/```json/gi, '').replace(/```/gi, '').trim();
-        
-        // As vezes o chat manda texto solto antes ou depois da array. Encontra o primeiro [ e o último ]
         const firstBracket = cleanText.indexOf('[');
         const lastBracket = cleanText.lastIndexOf(']');
-        
-        if(firstBracket === -1 || lastBracket === -1) {
-            throw new Error("Não encontrei o formato de colchetes [] do JSON.");
-        }
+        if(firstBracket === -1 || lastBracket === -1) throw new Error("Não encontrei o formato de colchetes [] do JSON.");
         
         cleanText = cleanText.substring(firstBracket, lastBracket + 1);
-
-        // Tenta converter texto pra Javascript puro
         const parsedData = JSON.parse(cleanText);
 
-        // Validação estrutural básica
-        if (!Array.isArray(parsedData) || parsedData.length === 0) {
-            throw new Error("O JSON precisa ser uma lista [] com perguntas.");
-        }
+        if (!Array.isArray(parsedData) || parsedData.length === 0) throw new Error("O JSON precisa ser uma lista [] com perguntas.");
 
-        // Valida se as perguntas têm o formato correto
         for (let i = 0; i < parsedData.length; i++) {
             const q = parsedData[i];
             if (!q.pergunta || !Array.isArray(q.opcoes) || q.opcoes.length !== 4 || typeof q.resposta_correta !== 'number') {
@@ -280,15 +272,22 @@ btnImportAi.addEventListener('click', () => {
             }
         }
 
-        // Tudo Certo! Ordena a dificuldade e salva
         const sortedQuestions = sortQuestionsByDifficulty(parsedData);
-        
         const questName = prompt("Sucesso! Qual será o nome desta Quest?", "Quest Gerada por IA");
         if (questName === null) return;
 
-        modules.push({ id: Date.now().toString(), name: questName || "Quest Gerada", questions: sortedQuestions, progressIndex: 0 });
-        syncData(); renderDashboard();
+        // Adiciona propriedades para rastrear o histórico
+        modules.push({ 
+            id: Date.now().toString(), 
+            name: questName || "Quest Gerada", 
+            questions: sortedQuestions, 
+            progressIndex: 0,
+            timesCompleted: 0,
+            totalCorrect: 0,
+            totalAnswered: 0 
+        });
         
+        syncData(); renderDashboard();
         closeAiModal.click();
         confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, colors: ['#06b6d4', '#6366f1', '#ffffff'], zIndex: 9999 });
 
@@ -305,7 +304,6 @@ function showModuleError(msg) {
     gsap.fromTo(errorMsg, {x: -10}, {x: 10, yoyo: true, repeat: 4, duration: 0.08, delay: 0.3});
 }
 
-// --- RENDER DASHBOARD E RESTANTE IGUAL ---
 function renderDashboard() {
     modulesGrid.innerHTML = '';
     if (modules.length === 0) {
@@ -381,9 +379,10 @@ function loadQuestion() {
     const mod = modules.find(m => m.id === activeModuleId);
     if (mod.progressIndex >= mod.questions.length) { finishGame(); return; }
 
-    let q = mod.questions[mod.progressIndex]; q.errouNesta = false;
+    let q = mod.questions[mod.progressIndex]; 
+    q.errouNesta = false;
+    q.jaRespondida = false; // Garante que a pergunta só conta 1 vez para as estatísticas
 
-    // Atualiza a barrinha visual de dificuldade no topo
     const difBadge = document.getElementById('difficulty-badge');
     if(difBadge) {
         difBadge.className = 'hidden md:flex items-center px-3 py-1 rounded-full text-xs font-bold text-white uppercase tracking-wider';
@@ -415,6 +414,12 @@ function checkAnswer(btn, selectedIndex, correctIndex, questionObj, mod, event) 
     if (btn.classList.contains('wrong') || btn.classList.contains('correct')) return;
     const allButtons = document.querySelectorAll('.option-btn');
 
+    // Estatística: Soma 1 na contagem total da matéria na primeira vez que clicar
+    if (!questionObj.jaRespondida) {
+        mod.totalAnswered = (mod.totalAnswered || 0) + 1;
+        questionObj.jaRespondida = true;
+    }
+
     if (selectedIndex === correctIndex) {
         btn.classList.add('correct');
         allButtons.forEach(b => b.style.pointerEvents = 'none'); 
@@ -425,6 +430,9 @@ function checkAnswer(btn, selectedIndex, correctIndex, questionObj, mod, event) 
         confetti({ particleCount: 60, spread: 70, origin: { x: originX, y: originY }, colors: ['#6366f1', '#10b981', '#ffffff'], zIndex: 9999 });
 
         if (!questionObj.errouNesta) { 
+            // Estatística: Soma 1 de acerto se passou de primeira
+            mod.totalCorrect = (mod.totalCorrect || 0) + 1;
+            
             streak++; addXP(10 + (streak > 2 ? 5 : 0)); 
             document.querySelectorAll('[id="fire-icon-container"]').forEach(el => { gsap.fromTo(el, {scale: 1.5, rotation: -15}, {scale: 1, rotation: 0, duration: 0.6, ease: "elastic.out(1, 0.3)"}); });
         } else { addXP(5); }
@@ -474,6 +482,13 @@ function updateDashStats() {
 }
 
 function finishGame() {
+    // Estatística: Quando chega no final, conta +1 vez concluída
+    const mod = modules.find(m => m.id === activeModuleId);
+    if (mod) {
+        mod.timesCompleted = (mod.timesCompleted || 0) + 1;
+        syncData();
+    }
+
     gameScreen.classList.add('hidden'); gameScreen.classList.remove('flex');
     endScreen.classList.remove('hidden');
     gsap.fromTo(endScreen.firstElementChild, {opacity: 0, scale: 0.8, y: 50}, {opacity: 1, scale: 1, y: 0, duration: 1, ease: "elastic.out(1, 0.5)"});
@@ -502,39 +517,65 @@ function playSound(frequency, type, duration) {
     oscillator.stop(audioCtx.currentTime + duration);
 }
 
-async function loadLeaderboard() {
-    leaderboardList.innerHTML = '<div class="p-10 text-center text-primary font-bold animate-pulse text-lg">Atualizando o ranking na nuvem... ☁️</div>';
-    try {
-        const res = await fetch('/api/leaderboard'); const data = await res.json();
-        if (data.success) {
-            leaderboardList.innerHTML = '';
-            data.leaderboard.forEach((player, index) => {
-                let rowBg = ''; let rankVisual = `<span class="text-lg font-black text-slate-400">#${player.rank}</span>`;
-                if (player.rank === 1) { rowBg = 'bg-yellow-50 dark:bg-yellow-900/20'; rankVisual = `<span class="text-3xl" title="1º Lugar">👑</span>`; } 
-                else if (player.rank === 2) { rowBg = 'bg-slate-50 dark:bg-slate-800/40'; rankVisual = `<span class="text-2xl">🥈</span>`; } 
-                else if (player.rank === 3) { rowBg = 'bg-amber-50 dark:bg-amber-900/20'; rankVisual = `<span class="text-2xl">🥉</span>`; }
+// --- FUNÇÃO PARA CARREGAR AS ESTATÍSTICAS NA TELA ---
+function loadStats() {
+    const statXp = document.getElementById('stat-total-xp');
+    const statQuests = document.getElementById('stat-total-quests');
+    const statAccuracy = document.getElementById('stat-global-accuracy');
+    const statsList = document.getElementById('stats-list');
 
-                const isMe = player.username === username;
-                if (isMe) rowBg = 'bg-primary/10 border-l-4 border-primary';
+    statXp.textContent = xp;
 
-                const row = document.createElement('div');
-                row.className = `grid grid-cols-12 gap-2 md:gap-4 p-4 md:p-5 items-center hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors ${rowBg}`;
-                
-                row.innerHTML = `
-                    <div class="col-span-2 text-center flex justify-center items-center h-full">${rankVisual}</div>
-                    <div class="col-span-6 md:col-span-5 flex flex-col justify-center">
-                        <span class="font-black text-base md:text-lg truncate ${isMe ? 'text-primary' : 'text-slate-700 dark:text-slate-200'}">${player.username} ${isMe ? '(Você)' : ''}</span>
-                        <span class="text-xs md:text-sm font-bold text-slate-400">Level ${player.level}</span>
-                    </div>
-                    <div class="col-span-4 md:col-span-3 flex justify-center items-center gap-1 md:gap-2">
-                        <span class="text-xl md:text-2xl">${player.league_icon}</span>
-                        <span class="font-bold text-xs md:text-base ${player.league_color} truncate">${player.league_name}</span>
-                    </div>
-                    <div class="hidden md:flex col-span-2 justify-end items-center font-black text-xl text-primary">${player.xp}</div>
-                `;
-                leaderboardList.appendChild(row);
-                gsap.fromTo(row, {opacity: 0, x: -30}, {opacity: 1, x: 0, duration: 0.5, delay: index * 0.05, ease: "back.out(1.2)"});
-            });
-        }
-    } catch (err) { leaderboardList.innerHTML = '<div class="p-10 text-center text-rose-500 font-bold">Erro de conexão ao carregar o ranking.</div>'; }
+    let totalCompleted = 0;
+    let globalCorrect = 0;
+    let globalAnswered = 0;
+
+    statsList.innerHTML = '';
+
+    if (modules.length === 0) {
+        statsList.innerHTML = '<div class="p-10 text-center text-slate-500 font-bold">Você ainda não tem matérias para analisar.</div>';
+    }
+
+    modules.forEach((mod, index) => {
+        const completed = mod.timesCompleted || 0;
+        const correct = mod.totalCorrect || 0;
+        const answered = mod.totalAnswered || 0;
+        
+        totalCompleted += completed;
+        globalCorrect += correct;
+        globalAnswered += answered;
+
+        const accuracy = answered > 0 ? Math.round((correct / answered) * 100) : 0;
+        
+        const row = document.createElement('div');
+        row.className = 'grid grid-cols-12 gap-4 p-5 items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors';
+        
+        // Define a cor da precisão (Verde, Amarelo ou Vermelho)
+        let accColor = 'text-rose-500';
+        if (accuracy >= 70) accColor = 'text-emerald-500';
+        else if (accuracy >= 40) accColor = 'text-yellow-500';
+        
+        row.innerHTML = `
+            <div class="col-span-12 md:col-span-6 flex flex-col">
+                <span class="font-black text-lg text-slate-700 dark:text-slate-200 truncate" title="${mod.name}">${mod.name}</span>
+                <span class="text-sm font-bold text-slate-400">${mod.questions.length} perguntas na matéria</span>
+            </div>
+            <div class="col-span-6 md:col-span-3 flex flex-col items-start md:items-center border-l-2 border-slate-100 dark:border-slate-700/50 pl-4 md:pl-0">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Concluída</span>
+                <span class="font-black text-xl text-primary">${completed} vezes</span>
+            </div>
+            <div class="col-span-6 md:col-span-3 flex flex-col items-end md:items-center">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Precisão</span>
+                <span class="font-black text-xl ${accColor}">${accuracy}%</span>
+            </div>
+        `;
+        statsList.appendChild(row);
+        gsap.fromTo(row, {opacity: 0, x: -20}, {opacity: 1, x: 0, duration: 0.4, delay: index * 0.05, ease: "power2.out"});
+    });
+
+    statQuests.textContent = totalCompleted;
+    
+    // Calcula precisão média juntando tudo
+    const globalAccPercent = globalAnswered > 0 ? Math.round((globalCorrect / globalAnswered) * 100) : 0;
+    statAccuracy.textContent = `${globalAccPercent}%`;
 }
