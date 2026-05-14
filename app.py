@@ -2,11 +2,16 @@ from flask import Flask, request, jsonify, render_template, session
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import json
+import os
+from dotenv import load_dotenv
+
+# Carregar variáveis de ambiente
+load_dotenv()
 
 app = Flask(__name__)
-# Chave secreta para a sessão (mantenha segura em produção)
-app.secret_key = 'skillquest_super_secret_key_123' 
-DB_FILE = 'skillquest.db'
+# Chave secreta para a sessão (usa variável de ambiente em produção)
+app.secret_key = os.getenv('SECRET_KEY', 'skillquest_super_secret_key_123')
+DB_FILE = os.getenv('DATABASE_URL', 'skillquest.db').replace('sqlite:///', '')
 
 def get_db():
     conn = sqlite3.connect(DB_FILE)
@@ -196,4 +201,7 @@ def upload_file():
         return jsonify({'error': 'JSON inválido.'}), 400
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # Configurações para produção
+    port = int(os.getenv('PORT', 5000))
+    debug = os.getenv('FLASK_ENV') == 'development'
+    app.run(host='0.0.0.0', port=port, debug=debug)
